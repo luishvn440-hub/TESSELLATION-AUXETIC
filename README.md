@@ -7,7 +7,7 @@ A dynamic, interactive web tool that generates mathematically perfect tessellati
 
 ## 🌐 Live Preview
 
-**[Click here to view the live demo](https://your-username.github.io/your-repo-name/)**
+**[Click here to view the live demo](https://luishv440-hub.github.io/TESSELLATION-AUXETIC.html/)**
 
 *(Note: Replace `your-username` and `your-repo-name` with your actual GitHub details and ensure GitHub Pages is enabled in your repository settings).*
 
