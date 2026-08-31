@@ -7,7 +7,6 @@ A dynamic, interactive web tool that generates mathematically perfect tessellati
 
 ## 🌐 Live Preview
 
-**[Click here to view the live demo](https://luishv440-hub.github.io/TESSELLATION-AUXETIC/Tessellation.Auxetic.html)**
 👉 [Open the Fractal Explorer](https://luishvn440-hub.github.io/FRACTALS_DRAWING/fractals-index.html)
 
 
