@@ -40,4 +40,4 @@ You do not need to install any dependencies, package managers, or run a local se
 ### Installation & Usage
 1. **Clone the repository** (or download the `index.html` file):
    ```bash
-   git clone https://github.com/your-username/your-repo-name.git
+   git clone https://github.com/luishvn440-hub/TESSELATION-AUXETIC.git
