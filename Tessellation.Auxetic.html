@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tessellation - Dynamic Angle (0-45)</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        header {
+            background-color: #fff;
+            padding: 15px 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            border-bottom: 2px solid #ddd;
+            z-index: 10;
+        }
+
+        h1 { margin: 0; font-size: 1.5rem; color: #333; }
+        .controls { display: flex; flex-wrap: wrap; gap: 20px; align-items: center; font-size: 0.9rem; }
+        .controls label { font-weight: bold; }
+        
+        button {
+            background-color: #333; color: white; padding: 8px 15px;
+            border: none; border-radius: 4px; cursor: pointer; transition: background 0.2s;
+        }
+        button:hover { background-color: #555; }
+
+        #svg-container {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: auto;
+            padding: 20px;
+        }
+
+        svg {
+            width: 100%;
+            max-width: 900px;
+            height: auto;
+            background: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Tessellation (Dynamic Angle 0-45)</h1>
+        <div class="controls">
+            <label for="iterations">Grid Size:</label>
+            <input type="range" id="iterations" min="2" max="15" value="5">
+
+            <label for="angle">Angle (0° - 45°):</label>
+            <input type="range" id="angle" min="0" max="45" value="30">
+            <span id="angle-display">30°</span>
+
+            <label for="color1">Color 1:</label>
+            <input type="color" id="color1" value="#4A90E2">
+            
+            <label for="color2">Color 2:</label>
+            <input type="color" id="color2" value="#50E3C2">
+
+            <button id="download-btn">Download SVG</button>
+        </div>
+    </header>
+
+    <div id="svg-container"></div>
+
+    <script>
+        const container = document.getElementById('svg-container');
+        const iterations = document.getElementById('iterations');
+        const angleSlider = document.getElementById('angle');
+        const angleDisplay = document.getElementById('angle-display');
+        const color1 = document.getElementById('color1');
+        const color2 = document.getElementById('color2');
+        const downloadBtn = document.getElementById('download-btn');
+
+        const svgNS = "http://www.w3.org/2000/svg";
+
+        function createSVGElement(tag, attributes) {
+            const element = document.createElementNS(svgNS, tag);
+            for (const key in attributes) {
+                element.setAttribute(key, attributes[key]);
+            }
+            return element;
+        }
+
+        function drawTessellation() {
+            const gridSize = parseInt(iterations.value);
+            const angleDeg = parseFloat(angleSlider.value);
+            angleDisplay.textContent = `${angleDeg}°`;
+
+            const canvasSize = 1000;
+
+            const svg = document.createElementNS(svgNS, "svg");
+            svg.setAttribute("width", "100%");
+            svg.setAttribute("height", "100%");
+            svg.setAttribute("viewBox", `0 0 ${canvasSize} ${canvasSize}`);
+            svg.setAttribute("id", "svg-output");
+
+            // MATHEMATICS FOR PERFECT VERTEX-TO-VERTEX TOUCHING
+            const angleRad = angleDeg * (Math.PI / 180);
+            
+            // Side of the square
+            const side = 1; 
+            // Radius from center to vertex
+            const radius = (side * Math.SQRT2) / 2;
+            
+            // The pitch (distance between centers) must be 2 * radius * cos(angle)
+            // This ensures the corners of adjacent squares perfectly touch.
+            const pitch = 2 * radius * Math.cos(angleRad);
+
+            // Global scaling: We use Math.max(pitch, 0.1) to prevent the pattern 
+            // from zooming in too far at 0 degrees (where pitch becomes very small).
+            const scale = canvasSize / (gridSize * Math.max(pitch, 0.1));
+
+            // Loop through a grid of squares
+            for (let j = -1; j < gridSize + 1; j++) {
+                for (let i = -1; i < gridSize + 1; i++) {
+                    
+                    // Calculate centers
+                    const cx = (i * pitch) * scale;
+                    const cy = (j * pitch) * scale;
+                    
+                    // Alternate rotation (+angle, -angle)
+                    const isClockwise = (i + j) % 2 === 0;
+                    const currentAngle = isClockwise ? angleRad : -angleRad;
+
+                    // Calculate the 4 vertices
+                    const corners = [];
+                    for (let k = 0; k < 4; k++) {
+                        const theta = currentAngle + k * (Math.PI / 2);
+                        corners.push([
+                            cx + (radius * scale) * Math.cos(theta), 
+                            cy + (radius * scale) * Math.sin(theta)
+                        ]);
+                    }
+
+                    // Draw the square
+                    const squarePoints = corners.map(c => c.join(',')).join(' ');
+                    svg.appendChild(createSVGElement('polygon', {
+                        points: squarePoints,
+                        fill: (i + j) % 2 === 0 ? color1.value : color2.value, 
+                        stroke: "#000", 
+                        'stroke-width': 3
+                    }));
+                }
+            }
+
+            container.innerHTML = '';
+            container.appendChild(svg);
+        }
+
+        // Event Listeners
+        [iterations, angleSlider, color1, color2].forEach(el => {
+            el.addEventListener('input', drawTessellation);
+        });
+
+        // Download functionality
+        downloadBtn.addEventListener('click', () => {
+            const svg = document.getElementById('svg-output');
+            const data = new XMLSerializer().serializeToString(svg);
+            const blob = new Blob([data], {type: 'image/svg+xml'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'tessellation_0_45.svg';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        });
+
+        // Initial draw
+        drawTessellation();
+    </script>
+</body>
+</html>
